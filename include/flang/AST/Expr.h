@@ -69,7 +69,7 @@ public:
   ExprType getExpressionID() const { return ExprID; }
   SMLoc getLocation() const { return Loc; }
 
-  virtual void print(raw_ostream&);
+  virtual void print(llvm::raw_ostream&);
   void dump();
 
   static bool classof(const Expr *) { return true; }

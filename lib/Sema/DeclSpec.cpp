@@ -22,7 +22,7 @@ using namespace flang;
 namespace flang {
   namespace diag {
     enum {
-#define DIAG(ENUM,FLAGS,DEFAULT_MAPPING,DESC,GROUP,\
+#define DIAG(ENUM,FLAGS,DEFAULT_MAPPING,DESC,GROUP,	\
              SFINAE,ACCESS,CATEGORY,BRIEF,FULL) ENUM,
 #include "flang/Basic/DiagnosticParseKinds.inc"
 #undef DIAG
