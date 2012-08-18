@@ -210,7 +210,6 @@ bool Parser::EatIfPresent(tok::TokenKind Kind) {
     Lex();
     return true;
   }
-
   return false;
 }
 
@@ -337,12 +336,14 @@ bool Parser::ParseMainProgram(std::vector<StmtResult> &Body) {
   //        ENDPROGRAM.
   ParseStatementLabel();
   if (Tok.isNot(tok::kw_END) && Tok.isNot(tok::kw_ENDPROGRAM))
+    printf("Parsing specification\n");
     ParseSpecificationPart(Body);
 
   // FIXME: Check for the specific keywords and not just absence of END or
   //        ENDPROGRAM.
   ParseStatementLabel();
   if (Tok.isNot(tok::kw_END) && Tok.isNot(tok::kw_ENDPROGRAM))
+    printf("Parsing execution\n");
     ParseExecutionPart(Body);
 
   // FIXME: Debugging support.
@@ -359,6 +360,7 @@ bool Parser::ParseMainProgram(std::vector<StmtResult> &Body) {
     EndProgramStmt *EPS = EndProgStmt.takeAs<EndProgramStmt>();
     IDInfo = EPS->getProgramName();
     NameLoc = EPS->getNameLocation();
+    dump(EPS);
   }
 
   Actions.ActOnEndMainProgram(IDInfo, NameLoc);
@@ -375,7 +377,8 @@ bool Parser::ParseMainProgram(std::vector<StmtResult> &Body) {
 ///          [declaration-construct] ...
 bool Parser::ParseSpecificationPart(std::vector<StmtResult> &Body) {
   bool HasErrors = false;
-  while (Tok.is(tok::kw_USE)) {
+  printf("\tparsing USE statments\n");
+  while (Tok.is(tok::kw_USE)) {    
     StmtResult S = ParseUSEStmt();
     if (S.isUsable()) {
       Body.push_back(S);
@@ -389,7 +392,8 @@ bool Parser::ParseSpecificationPart(std::vector<StmtResult> &Body) {
     ParseStatementLabel();
   }
 
-  while (Tok.is(tok::kw_IMPORT)) {
+  printf("\tparsing IMPORT statments\n");
+  while (Tok.is(tok::kw_IMPORT)) {    
     StmtResult S = ParseIMPORTStmt();
     if (S.isUsable()) {
       Body.push_back(S);
@@ -403,9 +407,11 @@ bool Parser::ParseSpecificationPart(std::vector<StmtResult> &Body) {
     ParseStatementLabel();
   }
 
+  printf("\tparsing IMPLICIT statment\n");
   if (ParseImplicitPartList(Body))
     HasErrors = true;
 
+  printf("\tparsing declarations\n");
   if (ParseDeclarationConstructList()) {
     LexToEndOfStatement();
     HasErrors = true;
@@ -548,7 +554,6 @@ bool Parser::ParseExecutionPart(std::vector<StmtResult> &Body) {
 bool Parser::ParseDeclarationConstructList() {
   while (!ParseDeclarationConstruct()) // FIXME: Make into a list.
     /* Parse them all */ ;
-
   return false;
 }
 
@@ -567,6 +572,7 @@ bool Parser::ParseDeclarationConstructList() {
 ///      or type-declaration-stmt
 ///      or stmt-function-stmt
 bool Parser::ParseDeclarationConstruct() {
+  printf("%s\n",Tok.getName());
   ParseStatementLabel();
 
   SmallVector<DeclResult, 4> Decls;

@@ -461,6 +461,9 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec &DS) {
       Lex();
       ExprResult KindExpr = ParseExpression();
       Len = KindExpr;
+      
+      
+      
     } else {
       if (Tok.is(tok::l_paren)) {
         Lex(); // Eat '('.
@@ -510,6 +513,8 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec &DS) {
                                   "expected ')' after selector");
       }
     }
+    
+    Len.get()->print(llvm::outs());
 
     break;
   }

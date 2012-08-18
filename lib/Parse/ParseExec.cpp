@@ -86,28 +86,27 @@ StmtResult Parser::ParseExecutableConstruct() {
 ///[obs] or arithmetic-if-stmt
 ///[obs] or computed-goto-stmt
 Parser::StmtResult Parser::ParseActionStmt() {
-  ParseStatementLabel();
+  printf("%s\n",Tok.getName());
 
+  ParseStatementLabel();
   // This is an assignment.
   if (Tok.getIdentifierInfo() && !NextTok.isAtStartOfStatement() &&
-      NextTok.is(tok::equal))
+      NextTok.is(tok::equal))    
     return ParseAssignmentStmt();
-      
+    
   StmtResult SR;
   switch (Tok.getKind()) {
   default: assert(false && "Unknown statement type!"); break;
-  case tok::kw_PRINT:
-    return ParsePrintStmt();
-
+  case tok::kw_PRINT:    
+    return ParsePrintStmt(); 
   case tok::kw_END:
-    // TODO: All of the end-* stmts.
     break;
-  case tok::kw_ENDFUNCTION:
   case tok::kw_ENDPROGRAM:
+  case tok::kw_ENDFUNCTION: 
   case tok::kw_ENDSUBPROGRAM:
   case tok::kw_ENDSUBROUTINE:
     // Handle in parent.
-    return StmtResult();
+    break;
   }
 
   return SR;
@@ -124,6 +123,7 @@ Parser::StmtResult Parser::ParseAssignmentStmt() {
   EatIfPresent(tok::equal);
 
   ExprResult RHS = ParseExpression();
+
   return Actions.ActOnAssignmentStmt(Context, LHS, RHS, StmtLabel);
 }
 
@@ -175,9 +175,9 @@ Parser::StmtResult Parser::ParseEND_PROGRAMStmt() {
     Diag.ReportError(Tok.getLocation(),
                      "expected 'END PROGRAM' statement");
     return StmtResult();
+    
   }
   Lex();
-
   const IdentifierInfo *IDInfo = 0;
   llvm::SMLoc NameLoc;
   if (Tok.is(tok::identifier) && !Tok.isAtStartOfStatement()) {
@@ -185,6 +185,6 @@ Parser::StmtResult Parser::ParseEND_PROGRAMStmt() {
     NameLoc = Tok.getLocation();
     Lex(); // Eat the ending token.
   }
-
   return Actions.ActOnENDPROGRAM(Context, IDInfo, Loc, NameLoc, StmtLabel);
 }
+
