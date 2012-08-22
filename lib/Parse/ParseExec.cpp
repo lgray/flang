@@ -117,12 +117,18 @@ Parser::StmtResult Parser::ParseActionStmt() {
 ///     assignment-stmt :=
 ///         variable = expr
 Parser::StmtResult Parser::ParseAssignmentStmt() {
+  llvm::outs() << "Parsing an assignment statement!\n";
   ExprResult LHS = ParseExpression();
 
   assert(Tok.is(tok::equal) && "Not a valid assignment statement!");
   EatIfPresent(tok::equal);
 
   ExprResult RHS = ParseExpression();
+
+  LHS.get()->print(llvm::outs());
+  llvm::outs() << " = ";
+  RHS.get()->print(llvm::outs());
+  llvm::outs() << '\n';
 
   return Actions.ActOnAssignmentStmt(Context, LHS, RHS, StmtLabel);
 }

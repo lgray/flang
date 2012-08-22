@@ -32,18 +32,38 @@ using namespace flang;
 //     defined-binary-op :=
 //         . letter [ letter ] ... .
 Parser::ExprResult Parser::ParseExpression() {
-  ExprResult LHS = ParseLevel5Expr();
-  if (LHS.isInvalid()) return ExprResult();
 
-  if (Tok.isNot(tok::defined_operator))
+  llvm::outs() << Tok.getName() << ' ' << Tok.getLength() << '\n';
+
+  ExprResult LHS = ParseLevel5Expr();
+  if (LHS.isInvalid()) {
+    llvm::outs() << "Parser::ParseExpression LHS is invalid!\n";
+    return ExprResult();
+  }
+
+  llvm::outs() << "Parser::ParseExpression LHS after parse: "; 
+  LHS.get()->print(llvm::outs());
+  llvm::outs() << '\n';
+
+  if (Tok.isNot(tok::defined_operator)) {
+    llvm::outs() << "Parser::ParseExpression operator not defined!\n";
     return LHS;
+  }
 
   llvm::SMLoc OpLoc = Tok.getLocation();
   IdentifierInfo *II = Tok.getIdentifierInfo();
   Lex();
 
   ExprResult RHS = ParseLevel5Expr();
-  if (RHS.isInvalid()) return ExprResult();
+  if (RHS.isInvalid()){
+    llvm::outs() << "Parser::ParseExpression RHS is invalid!\n";
+    return ExprResult();
+  }
+
+  LHS.get()->print(llvm::outs());
+  llvm::outs() << ' ';
+  LHS.get()->print(llvm::outs());
+  
 
   return DefinedOperatorBinaryExpr::Create(Context, OpLoc, LHS, RHS, II);
 }
@@ -118,14 +138,23 @@ Parser::ExprResult Parser::ParseEquivOperand() {
 }
 Parser::ExprResult Parser::ParseLevel5Expr() {
   ExprResult E = ParseEquivOperand();
-  if (E.isInvalid()) return ExprResult();
+  if (E.isInvalid()) {
+    llvm::outs() << "Parser::ParseLevel5Expr() Expression invalid!\n";
+    return ExprResult();
+  }
+
+  llvm::outs() << "Parser::ParseLevel5Expr() \n\tResult of ParseEquivOperand: ";
+  E.get()->print(llvm::outs());
+  llvm::outs() << '\n';
 
   while (true) {
     llvm::SMLoc OpLoc = Tok.getLocation();
     switch (Tok.getKind()) {
     default:
+      llvm::outs() << "ParseLevel5Expr() default!\n";
       return E;
     case tok::kw_EQV:
+      llvm::outs() << "ParseLevel5Expr() equiv!\n";
       Lex();
       E = BinaryExpr::Create(Context, OpLoc, BinaryExpr::Eqv, E,
                              ParseEquivOperand());
@@ -383,6 +412,8 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
   ExprResult E;
   llvm::SMLoc Loc = Tok.getLocation();
 
+  llvm::outs() << "ParsePrimaryExpr()!\n";
+
   // FIXME: Add rest of the primary expressions.
   switch (Tok.getKind()) {
   default:
@@ -403,6 +434,8 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
   case tok::logical_literal_constant: {
     std::string NumStr;
     CleanLiteral(Tok, NumStr);
+
+    llvm::outs() << "\ttok::logical_literal_constant " << NumStr << '\n';
 
     StringRef Data(NumStr);
     std::pair<StringRef, StringRef> StrPair = Data.split('_');
@@ -430,19 +463,42 @@ Parser::ExprResult Parser::ParsePrimaryExpr() {
     if (NextTok.is(tok::l_paren))
       // Possible substring.
       goto parse_designator;
+    
+    llvm::outs() << "Got a char_literal_constant to parse!\n";
+
     E = CharacterConstantExpr::Create(Context, Loc,
                                       StringRef(Tok.getLiteralData(),
                                                 Tok.getLength()));
+    llvm::outs() << "CharacterConstExpr result: ";
+    llvm::outs() << cast<CharacterConstantExpr>(E.get())->getValue();
+    llvm::outs() << '\n';
+
     Lex();
     break;
   case tok::int_literal_constant: {
     std::string NumStr;
     CleanLiteral(Tok, NumStr);
 
+    llvm::outs() << "\ttok::int_literal_constant " << NumStr << '\n';
+
     StringRef Data(NumStr);
     std::pair<StringRef, StringRef> StrPair = Data.split('_');
+
+    llvm::outs() << "\tStrPair \'" << StrPair.first  << '\''
+		 << " \'"  << StrPair.second << '\''
+		 << '\n';
+
     E = IntegerConstantExpr::Create(Context, Loc, StrPair.first);
+    
+    llvm::outs() << '\t';
+    llvm::outs() << cast<IntegerConstantExpr>(E.get())->getValue();
+    llvm::outs() << '\n';
+    
     SetKindSelector(cast<ConstantExpr>(E.get()), StrPair.second);
+
+    llvm::outs() << '\t';
+    E.get()->print(llvm::outs());
+    llvm::outs() << '\n';
 
     Lex();
     break;

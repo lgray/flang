@@ -28,6 +28,19 @@
 using namespace llvm;
 using namespace flang;
 
+// driver diags here for now
+namespace flang {
+  namespace diag {
+    enum {
+#define DIAG(ENUM,FLAGS,DEFAULT_MAPPING,DESC,GROUP,	\
+             SFINAE,ACCESS,CATEGORY,BRIEF,FULL) ENUM,
+#include "flang/Basic/DiagnosticDriverKinds.inc"
+#undef DIAG
+      NUM_BUILTIN_DRIVER_DIAGNOSTICS
+    };
+  }
+}
+
 llvm::sys::Path GetExecutablePath(const char *Argv0, bool CanonicalPrefixes) {
   if (!CanonicalPrefixes)
     return llvm::sys::Path(Argv0);
@@ -45,7 +58,7 @@ llvm::sys::Path GetExecutablePath(const char *Argv0, bool CanonicalPrefixes) {
 namespace {
 
   cl::opt<std::string>
-  InputFilename(cl::Positional, cl::desc("<input file>"), cl::init("-"));
+  InputFilename(cl::Positional, cl::desc("<input file>"), cl::init(""));
 
   cl::list<std::string>
   IncludeDirs("I", cl::desc("Directory of include files"),
@@ -57,27 +70,29 @@ namespace {
 } // end anonymous namespace
 
 static bool ParseFile(const std::string &Filename,
-                      const std::vector<std::string> &IncludeDirs) {
+                      const std::vector<std::string> &IncludeDirs) {  
   llvm::OwningPtr<llvm::MemoryBuffer> MB;
-  if (llvm::error_code ec = llvm::MemoryBuffer::getFileOrSTDIN(Filename.c_str(),
-                                                               MB)) {
-    llvm::errs() << "Could not open input file '" << Filename << "': " 
-                 << ec.message() <<"\n";
-    return true;
-  }
 
   // Record the location of the include directory so that the lexer can find it
   // later.
   SourceMgr SrcMgr;
-  SrcMgr.setIncludeDirs(IncludeDirs);
-
-  // Tell SrcMgr about this buffer, which is what Parser will pick up.
-  SrcMgr.AddNewSourceBuffer(MB.take(), SMLoc());
+  SrcMgr.setIncludeDirs(IncludeDirs);  
 
   LangOptions Opts;
   Opts.ReturnComments = ReturnComments;
   TextDiagnosticPrinter TDP(SrcMgr);
   Diagnostic Diag(&SrcMgr, &TDP, false);
+
+  if (llvm::error_code ec = llvm::MemoryBuffer::getFile(Filename.c_str(),
+							MB)) {
+    llvm::errs() << "Could not open input file '" << Filename << "': " 
+                 << ec.message() <<"\n";
+    return true;
+  }
+
+  // Tell SrcMgr about this buffer, which is what Parser will pick up.
+  SrcMgr.AddNewSourceBuffer(MB.take(), SMLoc());
+
 #if 0
   PrintAction PA(Diag);
 #endif

@@ -457,6 +457,8 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec &DS) {
     //    or :
     Lex();
 
+    llvm::outs() << "parsing a character!\n";
+
     if (Tok.is(tok::star)) {
       Lex();
       ExprResult KindExpr = ParseExpression();
@@ -469,6 +471,7 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec &DS) {
         Lex(); // Eat '('.
 
         if (Tok.is(tok::kw_LEN)) {
+	  llvm::outs() << "ParseDeclTypeSpec parsing len!\n";
           Len = ParseSelector(false);
           if (Len.isInvalid())
             return true;
@@ -477,6 +480,7 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec &DS) {
           if (Kind.isInvalid())
             return true;
         } else {
+	  llvm::outs() << "ParseDeclTypeSpec else for len\n";
           ExprResult KindExpr = ParseExpression();
           Len = KindExpr;
         }
@@ -515,6 +519,7 @@ bool Parser::ParseDeclarationTypeSpec(DeclSpec &DS) {
     }
     
     Len.get()->print(llvm::outs());
+    llvm::outs() << "\n";
 
     break;
   }

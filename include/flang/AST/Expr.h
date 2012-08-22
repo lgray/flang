@@ -120,7 +120,7 @@ protected:
   APNumericStorage() : BitWidth(0), VAL(0) { }
 
   llvm::APInt getIntValue() const {
-    unsigned NumWords = llvm::APInt::getNumWords(BitWidth);
+    unsigned NumWords = llvm::APInt::getNumWords(BitWidth);    
     if (NumWords > 1)
       return llvm::APInt(BitWidth, NumWords, pVal);
     else
@@ -182,6 +182,8 @@ public:
                                        StringRef Data);
 
   const char *getValue() const { return Data; }
+
+  virtual void print(llvm::raw_ostream&);
 
   static bool classof(const Expr *E) {
     return E->getExpressionID() == Expr::CharacterConstant;

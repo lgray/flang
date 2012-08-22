@@ -10,7 +10,7 @@
 #include "flang/AST/Expr.h"
 #include "flang/AST/ASTContext.h"
 #include "flang/AST/Decl.h"
-#include "llvm/ADT/APSInt.h"
+#include "llvm/ADT/APInt.h"
 #include "llvm/ADT/StringRef.h"
 using namespace flang;
 
@@ -19,7 +19,7 @@ void APNumericStorage::setIntValue(ASTContext &C, const APInt &Val) {
     C.Deallocate(pVal);
 
   BitWidth = Val.getBitWidth();
-  unsigned NumWords = Val.getNumWords();
+  unsigned NumWords = Val.getNumWords();  
   const uint64_t* Words = Val.getRawData();
   if (NumWords > 1) {
     pVal = new (C) uint64_t[NumWords];
@@ -33,8 +33,11 @@ void APNumericStorage::setIntValue(ASTContext &C, const APInt &Val) {
 IntegerConstantExpr::IntegerConstantExpr(ASTContext &C, SMLoc Loc,
                                          StringRef Data)
   : ConstantExpr(IntegerConstant, C.IntegerTy,  Loc) {
-  llvm::APSInt Val(64);
-  Data.getAsInteger(10, Val);
+  llvm::APInt Val(64,Data,10);
+  //Data.getAsInteger(10, Val);
+  llvm::outs() << "IntegerConstantExpr: " << Data << ' ' 
+	       << Val << '\n';
+
   Num.setValue(C, Val);
 }
 
@@ -58,15 +61,25 @@ RealConstantExpr *RealConstantExpr::Create(ASTContext &C, SMLoc Loc,
 CharacterConstantExpr::CharacterConstantExpr(ASTContext &C, SMLoc Loc,
                                              StringRef data)
   : ConstantExpr(CharacterConstant, C.CharacterTy, Loc) {
+
+  llvm::outs() << '\t' << data << '\n';
   // TODO: A 'kind' on a character literal constant.
   Data = new (C) char[data.size() + 1];
   std::strncpy(Data, data.data(), data.size());
   Data[data.size()] = '\0';
+  
+  llvm::outs() << '\t' << data << "=" << Data << '\n';
 }
 
 CharacterConstantExpr *CharacterConstantExpr::Create(ASTContext &C, SMLoc Loc,
                                                      StringRef Data) {
-  return new (C) CharacterConstantExpr(C, Loc, Data);
+  CharacterConstantExpr* tmp = new (C) CharacterConstantExpr(C, Loc, Data);
+
+  llvm::outs() << "New character const expr: " ;
+  tmp->print(llvm::outs());
+  llvm::outs() << '\n';
+
+  return tmp;
 }
 
 BOZConstantExpr::BOZConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data)
@@ -208,6 +221,11 @@ void ConstantExpr::print(llvm::raw_ostream &O) {
 
 void IntegerConstantExpr::print(llvm::raw_ostream &O) {
   O << Num.getValue();
+}
+
+
+void CharacterConstantExpr::print(llvm::raw_ostream &O) {
+  O << Data;
 }
 
 void VarExpr::print(llvm::raw_ostream &O) {
