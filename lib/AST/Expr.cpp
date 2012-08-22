@@ -62,24 +62,15 @@ CharacterConstantExpr::CharacterConstantExpr(ASTContext &C, SMLoc Loc,
                                              StringRef data)
   : ConstantExpr(CharacterConstant, C.CharacterTy, Loc) {
 
-  llvm::outs() << '\t' << data << '\n';
   // TODO: A 'kind' on a character literal constant.
   Data = new (C) char[data.size() + 1];
   std::strncpy(Data, data.data(), data.size());
   Data[data.size()] = '\0';
-  
-  llvm::outs() << '\t' << data << "=" << Data << '\n';
 }
 
 CharacterConstantExpr *CharacterConstantExpr::Create(ASTContext &C, SMLoc Loc,
                                                      StringRef Data) {
-  CharacterConstantExpr* tmp = new (C) CharacterConstantExpr(C, Loc, Data);
-
-  llvm::outs() << "New character const expr: " ;
-  tmp->print(llvm::outs());
-  llvm::outs() << '\n';
-
-  return tmp;
+  return new (C) CharacterConstantExpr(C, Loc, Data);
 }
 
 BOZConstantExpr::BOZConstantExpr(ASTContext &C, SMLoc Loc, StringRef Data)
