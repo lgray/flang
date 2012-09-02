@@ -216,10 +216,10 @@ void IntegerConstantExpr::print(llvm::raw_ostream &O) {
 
 
 void CharacterConstantExpr::print(llvm::raw_ostream &O) {
-  O << Data;
+  O << "LITERAL " << Data;
 }
 
-void VarExpr::print(llvm::raw_ostream &O) {
+void VarExpr::print(llvm::raw_ostream &O) {  
   O << *Variable;
 }
 

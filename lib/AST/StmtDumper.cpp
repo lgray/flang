@@ -108,13 +108,24 @@ void StmtVisitor::visit(const AsynchronousStmt *S) {
 }
 void StmtVisitor::visit(const AssignmentStmt *S) {
   OS << "(assignment:\n  (";
-  S->getLHS()->getType().print(OS);
-  OS << ")\n  (";
+  S->getLHS()->getType().print(OS);    
+  OS << "\n  (";
   S->getRHS()->getType().print(OS);
-  OS << "))\n";
+  OS << ") )\n";
 }
 void StmtVisitor::visit(const PrintStmt *S) {
-  OS << "(print)\n";
+  OS << "(print) : ";
+  ArrayRef<ExprResult> arr = S->getIDList();
+  ArrayRef<ExprResult>::const_iterator pos = arr.begin();
+  ArrayRef<ExprResult>::const_iterator lend = arr.end();
+  for(; pos != lend; ++pos) {
+    OS << "( ";
+    pos->get()->getType().print(OS);
+    OS << " : ";
+    pos->get()->print(OS);
+    OS << ' ';
+  }  
+  OS << ")\n";
 }
 
 void flang::dump(StmtResult S) {
