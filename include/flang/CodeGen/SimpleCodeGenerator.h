@@ -1,4 +1,4 @@
-//===--- CodeGen/SimpleCodeGenerator.h - Build LLVM from ASTs ---*- C++ -*-===//
+//===--- CodeGen/SimpleCodeGenerator.h - Build LLVM IR from AST -*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -14,27 +14,42 @@
 #ifndef LLVM_FLANG_CODEGEN_SIMPLECODEGENERATOR_H
 #define LLVM_FLANG_CODEGEN_SIMPLECODEGENERATOR_H
 
+#include <map>
+#include <string>
+
 namespace llvm {
   class LLVMContext;
   class Module;
   class IRBuilderBase;
+  class Value;
+  template<typename T> class ArrayRef;
 }
 
 namespace flang {
+  class Stmt;
+  template<typename T> class ActionResult;  
+  
   // this is a class that generates code for simple constructs
+  // basically trying to see if we can emit IR for hello world
+  // that works.
   class SimpleCodeGenerator{
     llvm::LLVMContext& _ctx;
-    llvm::IRBuilderBase* _bldr;
-    llvm::Module* _mod;
+    const llvm::Module* _mod;
+    const llvm::IRBuilderBase* _bldr;    
+    std::map<std::string,llvm::Value*> _nValues;
 
   public:
     SimpleCodeGenerator(llvm::LLVMContext&);
     ~SimpleCodeGenerator();    
 
-    bool processAST();
+    /// eat the AST we generated and emit IR
+    bool processAST(llvm::ArrayRef<ActionResult<Stmt*> >);    
+
+    // direct access to the module
+    const llvm::Module* module() const;
 
     /// dump out the generated code
-    void dump();
+    void dump() const;
   };
 } // end flang namespace
 
