@@ -30,7 +30,7 @@ namespace flang {
   template<typename T> class ActionResult;  
   
   // this is a class that generates code for simple constructs
-  // basically trying to see if we can emit IR for hello world
+   // basically trying to see if we can emit IR for hello world
   // that works.
   class SimpleCodeGenerator{
     llvm::LLVMContext& _ctx;
@@ -43,7 +43,7 @@ namespace flang {
     ~SimpleCodeGenerator();    
 
     /// eat the AST we generated and emit IR
-    bool processAST(llvm::ArrayRef<ActionResult<Stmt*> >);    
+    void processAST(llvm::ArrayRef<ActionResult<Stmt*> >);    
 
     // direct access to the module
     const llvm::Module* module() const;
